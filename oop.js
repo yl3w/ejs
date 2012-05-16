@@ -149,6 +149,32 @@ LichenEater.prototype.act = function(surroundings) {
 
 LichenEater.prototype.character = "c";
 
+function LichenEaterEater() {
+  this.energy = 10;
+};
+
+LichenEaterEater.prototype.act = function(surroundings) {
+  var emptySpace = findDirections(surroundings, " ");
+  var lichenNearby = findDirections(surroundings, "c");
+  if(this.energy > 26 && emptySpace.length > 2) {
+    return {type: "reproduce", direction: randomElement(emptySpace)};
+  } else if(lichenNearyby.length > 0) {
+    var candidates = [];
+    forEach(lichenNearby, bind(function(lichenDirection) {
+      var lichen = this.grid.valueAt(lichenDirection);
+      if(lichen.energy < 5)
+        candidates.push(lichen);
+    }, this));
+    if(candidates.length > 0) {
+      return {type:"eat", direction: randomElement(candidates)};
+    }
+  } else if (emptySpace.length > 0) {
+    return {type: "move", direction: randomElement(emptySpace)};
+  }
+  return {type: "wait" };
+};
+LichenEaterEater.prototype.character = "@";
+
 var wall = {
   character : "#"
 };
@@ -305,6 +331,7 @@ creatureTypes.register(BouncingBug);
 creatureTypes.register(DrunkBug);
 creatureTypes.register(Lichen);
 creatureTypes.register(LichenEater);
+creatureTypes.register(LichenEaterEater);
 
 var findDirections = function(surroundings, wanted) {
   var found = [];
