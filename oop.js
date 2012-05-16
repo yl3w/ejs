@@ -273,3 +273,19 @@ var terrarium = new Terrarium(newPlan);
 terrarium.onStep = partial(inPlacePrinter(), terrarium);
 terrarium.start();
 
+function LifeLikeTerrarium() {
+}
+
+var extend = function(object) {
+  function Object() {}
+  Object.protytype = object;
+  return new Object();
+};
+
+function LifeLikeTerrarium(plan) {
+  Terrarium.call(this, plan);
+}
+LifeLikeTerrarium.prototype = extend(Terrarium.prototype);
+LifeLikeTerrarium.prototype.constructor = LifeLikeTerrarium;
+
+
