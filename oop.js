@@ -109,15 +109,53 @@ function DrunkBug() {
 DrunkBug.prototype.character = "~";
 DrunkBug.prototype.act = function(surroundings) {
   var randomDirection = function(directions) {
-    return directions[Math.floor(Math.random()*directions.length)];
+    return randomElement(directions);
   };
   return {type: "move", direction : randomDirection(directions.names())};
 };
+
+function Lichen() {
+  this.energy = 5;
+}
+
+Lichen.prototype.act = function(surroundings) {
+  var emptySpace = findDirections(surroundings, " ");
+  if (this.energy >= 13 && emptySpace.length > 0)
+    return {type: "reproduce", direction: randomElement(emptySpace)};
+  else if (this.energy < 20)
+    return {type: "photosynthese"};
+  else
+    return {type: "wait"};
+};
+Lichen.prototype.character = "*";
+
+function LichenEater() {
+  this.energy = 10;
+}
+
+LichenEater.prototype.act = function(surroundings) {
+  var emptySpace = findDirections(surroundings, " ");
+  var lichenNearby = findDirections(surroundings, "*");
+  if(this.energy >= 30 && emptySpace.length > 0) {
+    return {type: "reproduce", direction: randomElement(emptySpace)};
+  } else if (lichenNearby.length > 0) {
+    return {type: "eat", direction: randomElement(lichenNearby)};
+  } else if (emptySpace.length > 0) {
+    return {type: "move", direction: randomElement(emptySpace)};
+  } else {
+    return {type: "wait" };
+  }
+};
+
+LichenEater.prototype.character = "c";
 
 var wall = {
   character : "#"
 };
 
+//--------------------------------------------------------------------
+// TERRARIUM
+//--------------------------------------------------------------------
 function Terrarium(plan) {  
   var grid = new Grid(plan.length, plan[0].length);
   for(var i = 0; i < plan.length; i++) {
@@ -197,6 +235,66 @@ Terrarium.prototype.stop = function() {
   this.running = undefined;
 };
 
+//-------------------------------------------------------------------
+// LIFE LIKE TERRARIUM
+//-------------------------------------------------------------------
+function LifeLikeTerrarium(plan) {
+  Terrarium.call(this, plan);
+}
+LifeLikeTerrarium.prototype = extend(Terrarium.prototype);
+LifeLikeTerrarium.prototype.constructor = LifeLikeTerrarium;
+
+LifeLikeTerrarium.prototype.processCreature = function(creature) {
+  var surroundings = this.listSurroundings(creature.point);
+  var action = creature.object.act(surroundings);
+
+  var target = undefined;
+  var valueAtTarget = undefined;
+  if (action.direction && directions.contains(action.direction)) {
+    var direction = directions.lookup(action.direction);
+    var maybe = creature.point.add(direction);
+    if (this.grid.isInside(maybe)) {
+      target = maybe;
+      valueAtTarget = this.grid.valueAt(target);
+    }
+  }
+
+  if (action.type == "move") {
+    if (target && !valueAtTarget) {
+      this.grid.moveValue(creature.point, target);
+      creature.point = target;
+      creature.object.energy -= 1;
+    }
+  }
+  else if (action.type == "eat") {
+    if (valueAtTarget && valueAtTarget.energy) {
+      this.grid.setValueAt(target, undefined);
+      creature.object.energy += valueAtTarget.energy;
+    }
+  }
+  else if (action.type == "photosynthese") {
+    creature.object.energy += 1;
+  }
+  else if (action.type == "reproduce") {
+    if (target && !valueAtTarget) {
+      var species = characterFromElement(creature.object);
+      var baby = elementFromCharacter(species);
+      creature.object.energy -= baby.energy * 2;
+      if (creature.object.energy > 0)
+        this.grid.setValueAt(target, baby);
+    }
+  }
+  else if (action.type == "wait") {
+    creature.object.energy -= 0.2;
+  }
+  else {
+    throw new Error("Unsupported action: " + action.type);
+  }
+
+  if (creature.object.energy <= 0)
+    this.grid.setValueAt(creature.point, undefined);
+};
+
 /* UTILITY FUNCTIONS - GLOBAL OBJECTS */
 var creatureTypes = new Dictionary();
 creatureTypes.register = function(constructor) {
@@ -205,6 +303,21 @@ creatureTypes.register = function(constructor) {
 creatureTypes.register(StupidBug);
 creatureTypes.register(BouncingBug);
 creatureTypes.register(DrunkBug);
+creatureTypes.register(Lichen);
+creatureTypes.register(LichenEater);
+
+var findDirections = function(surroundings, wanted) {
+  var found = [];
+  directions.each(function(name) {
+    if (surroundings[name] == wanted)
+      found.push(name);
+  });
+  return found;
+};
+
+var randomElement = function(array) {
+  return array[Math.floor(Math.random()*array.length)];
+};
 
 var forEach = function(array, action) {
   for(var i = 0; i < array.length; i++) {
@@ -236,6 +349,13 @@ function characterFromElement(element) {
   return element.character;
 };
 
+var extend = function(object) {
+  function Object() {}
+  Object.protytype = object;
+  return new Object();
+};
+
+/* Execution of the code */
 var thePlan =
   ["############################",
    "#      #    #      o      ##",
@@ -250,11 +370,6 @@ var thePlan =
    "#    #                     #",
    "############################"];
 
-/*var tr = new Terrarium(thePlan);
-tr.onStep = partial(inPlacePrinter(), tr);
-tr.onStep();
-tr.start();
-*/
 var newPlan =
   ["############################",
    "#                      #####",
@@ -271,21 +386,6 @@ var newPlan =
 
 var terrarium = new Terrarium(newPlan);
 terrarium.onStep = partial(inPlacePrinter(), terrarium);
-terrarium.start();
-
-function LifeLikeTerrarium() {
-}
-
-var extend = function(object) {
-  function Object() {}
-  Object.protytype = object;
-  return new Object();
-};
-
-function LifeLikeTerrarium(plan) {
-  Terrarium.call(this, plan);
-}
-LifeLikeTerrarium.prototype = extend(Terrarium.prototype);
-LifeLikeTerrarium.prototype.constructor = LifeLikeTerrarium;
+//terrarium.start();
 
 
