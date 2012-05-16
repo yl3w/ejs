@@ -155,16 +155,15 @@ function LichenEaterEater() {
 
 LichenEaterEater.prototype.act = function(surroundings) {
   var emptySpace = findDirections(surroundings, " ");
-  var lichenNearby = findDirections(surroundings, "c");
+  var surroundingLichens = findDirections(surroundings, "c");
   if(this.energy > 26 && emptySpace.length > 2) {
     return {type: "reproduce", direction: randomElement(emptySpace)};
-  } else if(lichenNearyby.length > 0) {
+  } else if(surroundingLichens.length > 0) {
     var candidates = [];
-    forEach(lichenNearby, bind(function(lichenDirection) {
-      var lichen = this.grid.valueAt(lichenDirection);
+    forEach(surroundingLichens, function(lichen) {
       if(lichen.energy < 5)
         candidates.push(lichen);
-    }, this));
+    });
     if(candidates.length > 0) {
       return {type:"eat", direction: randomElement(candidates)};
     }
@@ -217,23 +216,23 @@ Terrarium.prototype.listActingCreatures = function() {
 };
 
 Terrarium.prototype.listSurroundings = function(point) {
-  var surrounding = {};
+  var surroundings = {};
   var grid = this.grid;
   directions.each(function(direction, ptAdjustment) {
     var np =  point.add(ptAdjustment);
-    surrounding[direction] = wall;
+    surroundings[direction] = wall;
     if(grid.isInside(np)) {
-      surrounding[direction] = grid.valueAt(point.add(ptAdjustment));
+      surroundings[direction] = grid.valueAt(point.add(ptAdjustment));
     }
   });
-  return surrounding;
+  return surroundings;
 };
 
 Terrarium.prototype.processCreature = function(creature) {
-  var surrounding = this.listSurroundings(creature.point);
-  var action = creature.object.act(surrounding);
+  var surroundings = this.listSurroundings(creature.point);
+  var action = creature.object.act(surroundings);
   if(action.type === "move" && directions.contains(action.direction)) {
-     if(elementFromCharacter(surrounding[action.direction]) === undefined) {
+     if(elementFromCharacter(surroundings[action.direction]) === undefined) {
        var to = creature.point.add(directions.lookup(action.direction));
        if(this.grid.isInside(to))
          this.grid.moveValue(creature.point, to);
@@ -430,7 +429,25 @@ var lichenPlan =
    "############################"];
 
 
-var terrarium = new LifeLikeTerrarium(lichenPlan);
+//var terrarium = new LifeLikeTerrarium(lichenPlan);
+//terrarium.onStep = partial(inPlacePrinter(), terrarium);
+//terrarium.start();
+
+var lichenPlanExtended =
+  ["############################",
+   "#                @    ######",
+   "#    ***                **##",
+   "#   *##**         **  c  *##",
+   "#    ***     c    ##**    *#",
+   "#   @   c    @    ##***   *#",
+   "#                 ##**    *#",
+   "#   c@      #*            *#",
+   "#*      @   #**       c   *#",
+   "#***        ##**    c    **#",
+   "#*****     ###***       *###",
+   "############################"];
+
+var terrarium = new LifeLikeTerrarium(lichenPlanExtended);
 terrarium.onStep = partial(inPlacePrinter(), terrarium);
 terrarium.start();
 
