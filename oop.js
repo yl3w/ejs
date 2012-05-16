@@ -349,9 +349,9 @@ function characterFromElement(element) {
   return element.character;
 };
 
-var extend = function(object) {
+var extend = function(obj) {
   function Object() {}
-  Object.protytype = object;
+  Object.prototype = obj;
   return new Object();
 };
 
@@ -384,8 +384,26 @@ var newPlan =
    "#        #######           #",
    "############################"];
 
-var terrarium = new Terrarium(newPlan);
-terrarium.onStep = partial(inPlacePrinter(), terrarium);
+//var terrarium = new Terrarium(newPlan);
+//terrarium.onStep = partial(inPlacePrinter(), terrarium);
 //terrarium.start();
 
+var lichenPlan =
+  ["############################",
+   "#                     ######",
+   "#    ***                **##",
+   "#   *##**         **  c  *##",
+   "#    ***     c    ##**    *#",
+   "#       c         ##***   *#",
+   "#                 ##**    *#",
+   "#   c       #*            *#",
+   "#*          #**       c   *#",
+   "#***        ##**    c    **#",
+   "#*****     ###***       *###",
+   "############################"];
+
+
+var terrarium = new LifeLikeTerrarium(lichenPlan);
+terrarium.onStep = partial(inPlacePrinter(), terrarium);
+terrarium.start();
 
