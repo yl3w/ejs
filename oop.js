@@ -138,7 +138,7 @@ LichenEater.prototype.act = function(surroundings) {
   var lichenNearby = findDirections(surroundings, "*");
   if(this.energy >= 30 && emptySpace.length > 0) {
     return {type: "reproduce", direction: randomElement(emptySpace)};
-  } else if (lichenNearby.length > 0) {
+  } else if (lichenNearby.length > 1) {
     return {type: "eat", direction: randomElement(lichenNearby)};
   } else if (emptySpace.length > 0) {
     return {type: "move", direction: randomElement(emptySpace)};
