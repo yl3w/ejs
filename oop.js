@@ -160,10 +160,10 @@ LichenEaterEater.prototype.act = function(surroundings) {
     return {type: "reproduce", direction: randomElement(emptySpace)};
   } else if(surroundingLichens.length > 0) {
     var candidates = [];
-    forEach(surroundingLichens, function(lichen) {
-      if(lichen.energy < 5)
+    forEach(surroundingLichens, bind(function(lichen) {
+      if(lichen.energy < 3 || this.energy < 5)
         candidates.push(lichen);
-    });
+    }, this));
     if(candidates.length > 0) {
       return {type:"eat", direction: randomElement(candidates)};
     }
