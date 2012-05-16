@@ -221,9 +221,9 @@ Terrarium.prototype.listSurroundings = function(point) {
   var grid = this.grid;
   directions.each(function(direction, ptAdjustment) {
     var np =  point.add(ptAdjustment);
-    surrounding[direction] = "#";
+    surrounding[direction] = wall;
     if(grid.isInside(np)) {
-      surrounding[direction] = characterFromElement(grid.valueAt(point.add(ptAdjustment))); 
+      surrounding[direction] = grid.valueAt(point.add(ptAdjustment));
     }
   });
   return surrounding;
@@ -336,7 +336,7 @@ creatureTypes.register(LichenEaterEater);
 var findDirections = function(surroundings, wanted) {
   var found = [];
   directions.each(function(name) {
-    if (surroundings[name] == wanted)
+    if (characterFromElement(surroundings[name]) === wanted)
       found.push(name);
   });
   return found;
